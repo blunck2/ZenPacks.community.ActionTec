@@ -1,0 +1,47 @@
+#!/usr/bin/expect --
+
+#
+# this is an expect script
+#
+# in an expect script we typically run a command, look for output, and then
+# supply input.  the execute a command, look for output, supply additional
+# input pattern repeats itself as much as necessary.
+#
+# in this particular expect script we telnet to an actiontec fios router.
+# we login and run some commands that print network interface statistics.
+# 
+# this expect script shouldn't be run standalone.  a wrapper script should
+# call it (presumably network-stats.sh)
+#
+
+# doesn't seem like we're timing out after 5 seconds but ... whatever
+set timeout 1
+
+# telnet to the host specified as the first command line argument
+spawn telnet [lindex $argv 0]
+
+# send the username when we see the right prompt
+expect "Username: "
+send "[lindex $argv 1]\r"
+
+# send the password when we see the right prompt
+expect "Password:"
+send "[lindex $argv 2]\r"
+
+# look for the actiontec prompt
+expect "Wireless Broadband Router> "
+
+# ask for an interactive shell in busybox
+send "system shell\r"
+
+# wait for that blessed root prompt
+expect "/ # "
+
+# run the ifconfig command.  eth1 is the broadband interface
+send "ifconfig eth1\r"
+expect "/ # "
+
+# and back that ass up...
+send "exit\r"
+expect "Wireless Broadband Router> "
+send "exit\r"
